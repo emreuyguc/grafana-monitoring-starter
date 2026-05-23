@@ -1,8 +1,18 @@
-# Grafana + Loki + Optional Alloy
+# observability-grafana-starter
 
-Production-oriented Docker Compose boilerplate for Grafana, Loki, and optional Grafana Alloy.
+Personal Grafana-based observability starter kit for fast setup and practical configuration.
+
+This repository is my own boilerplate for personal projects and applications, built as a quick-start observability stack with up-to-date Grafana, Loki, and optional Alloy configuration patterns.
 
 Grafana and Loki are the core stack and always start together. Alloy is fully configured but disabled by default through a Docker Compose profile, so a normal Coolify deployment stays focused on Grafana + Loki while Fluent Bit can push logs directly to Loki.
+
+## Personal Use Notice
+
+This project is created for personal use and experimentation.
+
+- No license is currently provided.
+- Use at your own risk.
+- I do not accept responsibility for issues, data loss, outages, or any damage caused by using this repository.
 
 ## Services
 
