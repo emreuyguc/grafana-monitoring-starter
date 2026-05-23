@@ -1,4 +1,4 @@
-# observability-grafana-starter
+# Grafana Observability Starter Kit
 
 Personal Grafana-based observability starter kit for fast setup and practical configuration.
 
