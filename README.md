@@ -153,3 +153,10 @@ curl -sS -X POST http://localhost:3100/loki/api/v1/push \
 ```
 
 Then open the provisioned `Loki Overview` dashboard in Grafana.
+
+## Optional Future Features
+
+- [ ] Tempo for distributed tracing
+- [ ] Prometheus for metrics scraping and storage
+- [ ] Grafana Alerting (rules, contact points, and notification policies)
+- [ ] Prebuilt dashboards for common infrastructure and application workloads
