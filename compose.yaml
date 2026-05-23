@@ -1,0 +1,147 @@
+name: euu-grafana-loki
+
+x-default-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: ${DOCKER_LOG_MAX_SIZE:-10m}
+    max-file: ${DOCKER_LOG_MAX_FILE:-3}
+
+services:
+  grafana:
+    image: grafana/grafana:${GRAFANA_VERSION:-13.0.1}
+    restart: unless-stopped
+    depends_on:
+      - loki
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:?set GRAFANA_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?set GRAFANA_ADMIN_PASSWORD}
+      - GF_SERVER_ROOT_URL=${GRAFANA_ROOT_URL:?set GRAFANA_ROOT_URL}
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_ANALYTICS_REPORTING_ENABLED=false
+      - GF_ANALYTICS_CHECK_FOR_UPDATES=false
+      - GF_SECURITY_DISABLE_GRAVATAR=true
+      - GF_LOG_MODE=console
+      - GF_LOG_LEVEL=${GRAFANA_LOG_LEVEL:-info}
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+    expose:
+      - "3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./config/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:3000/api/health || exit 1"]
+      interval: ${GRAFANA_HEALTH_INTERVAL:-30s}
+      timeout: ${GRAFANA_HEALTH_TIMEOUT:-5s}
+      retries: ${GRAFANA_HEALTH_RETRIES:-5}
+      start_period: ${GRAFANA_HEALTH_START_PERIOD:-45s}
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          cpus: "${GRAFANA_CPU_LIMIT:-1.00}"
+          memory: ${GRAFANA_MEMORY_LIMIT:-512M}
+        reservations:
+          cpus: "${GRAFANA_CPU_RESERVATION:-0.25}"
+          memory: ${GRAFANA_MEMORY_RESERVATION:-256M}
+    networks:
+      - observability
+
+  loki:
+    image: grafana/loki:${LOKI_VERSION:-3.7.0}
+    restart: unless-stopped
+    command:
+      - -config.file=/etc/loki/loki-config.yaml
+      - -config.expand-env=true
+    environment:
+      - LOKI_LOG_LEVEL=${LOKI_LOG_LEVEL:-info}
+      - LOKI_S3_BUCKET=${LOKI_S3_BUCKET:?set LOKI_S3_BUCKET}
+      - LOKI_S3_ENDPOINT=${LOKI_S3_ENDPOINT:?set LOKI_S3_ENDPOINT}
+      - LOKI_S3_REGION=${LOKI_S3_REGION:?set LOKI_S3_REGION}
+      - LOKI_S3_ACCESS_KEY_ID=${LOKI_S3_ACCESS_KEY_ID:?set LOKI_S3_ACCESS_KEY_ID}
+      - LOKI_S3_SECRET_ACCESS_KEY=${LOKI_S3_SECRET_ACCESS_KEY:?set LOKI_S3_SECRET_ACCESS_KEY}
+      - LOKI_S3_FORCE_PATH_STYLE=${LOKI_S3_FORCE_PATH_STYLE:-true}
+      - LOKI_S3_INSECURE=${LOKI_S3_INSECURE:-false}
+      - LOKI_RETENTION_PERIOD=${LOKI_RETENTION_PERIOD:-720h}
+      - LOKI_INGESTION_RATE_MB=${LOKI_INGESTION_RATE_MB:-16}
+      - LOKI_INGESTION_BURST_SIZE_MB=${LOKI_INGESTION_BURST_SIZE_MB:-32}
+      - LOKI_MAX_QUERY_SERIES=${LOKI_MAX_QUERY_SERIES:-5000}
+      - LOKI_MAX_ENTRIES_LIMIT_PER_QUERY=${LOKI_MAX_ENTRIES_LIMIT_PER_QUERY:-5000}
+      - LOKI_QUERY_TIMEOUT=${LOKI_QUERY_TIMEOUT:-2m}
+      - LOKI_MAX_QUERY_LOOKBACK=${LOKI_MAX_QUERY_LOOKBACK:-720h}
+      - LOKI_REJECT_OLD_SAMPLES_MAX_AGE=${LOKI_REJECT_OLD_SAMPLES_MAX_AGE:-168h}
+      - LOKI_CHUNK_IDLE_PERIOD=${LOKI_CHUNK_IDLE_PERIOD:-30m}
+      - LOKI_MAX_CHUNK_AGE=${LOKI_MAX_CHUNK_AGE:-2h}
+      - LOKI_CHUNK_TARGET_SIZE=${LOKI_CHUNK_TARGET_SIZE:-1572864}
+      - LOKI_TSDB_CACHE_TTL=${LOKI_TSDB_CACHE_TTL:-24h}
+      - LOKI_COMPACTION_INTERVAL=${LOKI_COMPACTION_INTERVAL:-10m}
+      - LOKI_RETENTION_DELETE_DELAY=${LOKI_RETENTION_DELETE_DELAY:-2h}
+      - LOKI_RETENTION_DELETE_WORKER_COUNT=${LOKI_RETENTION_DELETE_WORKER_COUNT:-50}
+    expose:
+      - "3100"
+    volumes:
+      - ./config/loki/loki-config.yaml:/etc/loki/loki-config.yaml:ro
+      - loki-data:/loki
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          cpus: "${LOKI_CPU_LIMIT:-2.00}"
+          memory: ${LOKI_MEMORY_LIMIT:-1G}
+        reservations:
+          cpus: "${LOKI_CPU_RESERVATION:-0.50}"
+          memory: ${LOKI_MEMORY_RESERVATION:-512M}
+    networks:
+      - observability
+
+  alloy:
+    image: grafana/alloy:${ALLOY_VERSION:-v1.16.0}
+    profiles: ["alloy"]
+    restart: unless-stopped
+    user: "0"
+    depends_on:
+      loki:
+        condition: service_healthy
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    environment:
+      - ALLOY_LOG_LEVEL=${ALLOY_LOG_LEVEL:-info}
+      - ALLOY_ENVIRONMENT=${ALLOY_ENVIRONMENT:-production}
+    expose:
+      - "12345"
+      - "4317"
+      - "4318"
+    volumes:
+      - ./config/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - alloy-data:/var/lib/alloy/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:12345/-/ready || exit 1"]
+      interval: ${ALLOY_HEALTH_INTERVAL:-30s}
+      timeout: ${ALLOY_HEALTH_TIMEOUT:-5s}
+      retries: ${ALLOY_HEALTH_RETRIES:-5}
+      start_period: ${ALLOY_HEALTH_START_PERIOD:-30s}
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          cpus: "${ALLOY_CPU_LIMIT:-1.00}"
+          memory: ${ALLOY_MEMORY_LIMIT:-512M}
+        reservations:
+          cpus: "${ALLOY_CPU_RESERVATION:-0.25}"
+          memory: ${ALLOY_MEMORY_RESERVATION:-256M}
+    networks:
+      - observability
+
+networks:
+  observability:
+    driver: bridge
+
+volumes:
+  grafana-data:
+  loki-data:
+  alloy-data:

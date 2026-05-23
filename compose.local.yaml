@@ -1,0 +1,14 @@
+services:
+  grafana:
+    ports:
+      - "127.0.0.1:${GRAFANA_LOCAL_PORT:-3000}:3000"
+
+  loki:
+    ports:
+      - "127.0.0.1:${LOKI_LOCAL_PORT:-3100}:3100"
+
+  alloy:
+    ports:
+      - "127.0.0.1:${ALLOY_UI_LOCAL_PORT:-12345}:12345"
+      - "127.0.0.1:${ALLOY_OTLP_GRPC_LOCAL_PORT:-4317}:4317"
+      - "127.0.0.1:${ALLOY_OTLP_HTTP_LOCAL_PORT:-4318}:4318"

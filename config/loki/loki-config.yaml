@@ -1,0 +1,103 @@
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 9095
+  log_level: "${LOKI_LOG_LEVEL}"
+  http_server_read_timeout: 2m
+  http_server_write_timeout: 2m
+
+common:
+  path_prefix: /loki
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+
+analytics:
+  reporting_enabled: false
+
+ingester:
+  wal:
+    enabled: true
+    dir: /loki/wal
+  lifecycler:
+    address: 127.0.0.1
+    ring:
+      kvstore:
+        store: inmemory
+      replication_factor: 1
+    final_sleep: 0s
+  chunk_idle_period: "${LOKI_CHUNK_IDLE_PERIOD}"
+  max_chunk_age: "${LOKI_MAX_CHUNK_AGE}"
+  chunk_target_size: ${LOKI_CHUNK_TARGET_SIZE}
+
+schema_config:
+  configs:
+    - from: "2024-01-01"
+      store: tsdb
+      object_store: s3
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+storage_config:
+  aws:
+    bucketnames: "${LOKI_S3_BUCKET}"
+    endpoint: "${LOKI_S3_ENDPOINT}"
+    region: "${LOKI_S3_REGION}"
+    access_key_id: "${LOKI_S3_ACCESS_KEY_ID}"
+    secret_access_key: "${LOKI_S3_SECRET_ACCESS_KEY}"
+    s3forcepathstyle: ${LOKI_S3_FORCE_PATH_STYLE}
+    insecure: ${LOKI_S3_INSECURE}
+  tsdb_shipper:
+    active_index_directory: /loki/index
+    cache_location: /loki/index_cache
+    cache_ttl: "${LOKI_TSDB_CACHE_TTL}"
+
+compactor:
+  working_directory: /loki/compactor
+  compaction_interval: "${LOKI_COMPACTION_INTERVAL}"
+  retention_enabled: true
+  retention_delete_delay: "${LOKI_RETENTION_DELETE_DELAY}"
+  retention_delete_worker_count: ${LOKI_RETENTION_DELETE_WORKER_COUNT}
+  delete_request_store: s3
+
+limits_config:
+  allow_structured_metadata: true
+  volume_enabled: true
+  retention_period: "${LOKI_RETENTION_PERIOD}"
+  ingestion_rate_mb: ${LOKI_INGESTION_RATE_MB}
+  ingestion_burst_size_mb: ${LOKI_INGESTION_BURST_SIZE_MB}
+  max_query_series: ${LOKI_MAX_QUERY_SERIES}
+  max_entries_limit_per_query: ${LOKI_MAX_ENTRIES_LIMIT_PER_QUERY}
+  query_timeout: "${LOKI_QUERY_TIMEOUT}"
+  max_query_lookback: "${LOKI_MAX_QUERY_LOOKBACK}"
+  reject_old_samples: true
+  reject_old_samples_max_age: "${LOKI_REJECT_OLD_SAMPLES_MAX_AGE}"
+  discover_service_name:
+    - service_name
+    - service
+    - app
+    - application
+    - container
+    - container_name
+    - job
+
+ruler:
+  storage:
+    type: local
+    local:
+      directory: /loki/rules
+  rule_path: /loki/rules-temp
+  alertmanager_url: ""
+
+frontend:
+  max_outstanding_per_tenant: 1024
+
+query_range:
+  align_queries_with_step: true
+
+querier:
+  max_concurrent: 8
