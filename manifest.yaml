@@ -1,0 +1,93 @@
+name: grafana-monitoring-starter
+app: grafana-observability
+repository_type: single-stack-template
+starter_version: 0.1.0
+last_updated: 2026-07-12
+canonical_compose: compose.yaml
+base_compose: compose.yaml
+local_override: compose.local.yaml
+env_example: .env.example
+static_validation: tests/validate-boilerplate.sh
+
+platform_templates:
+  dokploy_variants:
+    self-hosted-s3: dokploy/templates/dokploy-self-hosted-s3.json
+    external-s3: dokploy/templates/dokploy-external-s3.json
+
+services:
+  grafana:
+    image: grafana/grafana:13.0.1
+    role: dashboard
+    default_state: always-on
+    public: coolify-domain-only
+    internal_endpoint: http://grafana:3000
+    persistent_volumes:
+      - grafana-data
+  loki:
+    image: grafana/loki:3.7.0
+    role: log-storage
+    default_state: always-on
+    public: false
+    internal_endpoint: http://loki:3100
+    persistent_volumes:
+      - loki-data
+  alloy:
+    image: grafana/alloy:v1.16.0
+    role: optional-collector
+    default_state: compose-feature-overlay
+    public: false
+    internal_endpoints:
+      - http://alloy:12345
+      - alloy:4317
+      - alloy:4318
+    persistent_volumes:
+      - alloy-data
+  minio:
+    image: ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z
+    role: self-hosted-s3-object-storage
+    default_state: compose-overlay-self-hosted-s3
+    public: false
+    internal_endpoints:
+      - http://minio:9000
+      - http://minio:9001
+    persistent_volumes:
+      - minio-data
+  minio-createbucket:
+    image: ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z
+    role: self-hosted-s3-bucket-bootstrap
+    default_state: compose-overlay-self-hosted-s3
+    public: false
+
+features:
+  grafana_provisioning: enabled
+  grafana_security_hardening: enabled
+  loki_tsdb_schema: v13
+  loki_object_storage: s3-compatible
+  loki_retention_default: 720h
+  loki_readiness_healthcheck: enabled
+  self_hosted_s3: compose.self-hosted-s3.yaml
+  direct_fluent_bit_ingestion: enabled
+  alloy_feature_overlay: compose.features.alloy.yaml
+  public_root_compose_ports: disabled
+
+variants:
+  external-s3:
+    status: base-compose
+    topology: external-object-storage
+    env_example: .env.example
+    compose_files:
+      - compose.yaml
+  self-hosted-s3:
+    status: supported-compose-overlay
+    topology: grafana-loki-minio
+    env_example: .env.self-hosted-s3.example
+    compose_files:
+      - compose.yaml
+      - compose.self-hosted-s3.yaml
+
+validation:
+  static:
+    - bash tests/validate-boilerplate.sh
+  manual_runtime:
+    - docker compose exec loki wget -qO- http://localhost:3100/ready
+    - push a test log to http://localhost:3100/loki/api/v1/push

@@ -1,8 +1,10 @@
 .env
 .env.*
 !.env.example
+!.env.self-hosted-s3.example
 
 .DS_Store
+.idea/
 
 data/
 tmp/
