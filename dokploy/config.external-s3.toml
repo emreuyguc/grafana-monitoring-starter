@@ -1,0 +1,67 @@
+[variables]
+main_domain = "${domain}"
+grafana_admin_user = "admin"
+grafana_admin_password = "${password:32}"
+container_name_prefix = "${APP_NAME}-grafana"
+
+# External S3-compatible storage for Loki. This variant does not start a
+# separate S3 service; replace these values in Dokploy before deployment.
+loki_s3_bucket = "loki-logs"
+loki_s3_endpoint = "http://s3.example.com"
+loki_s3_region = "us-east-1"
+loki_s3_access_key_id = "replace_with_s3_access_key_id"
+loki_s3_secret_access_key = "replace_with_s3_secret_access_key"
+
+[[config.domains]]
+serviceName = "grafana"
+port = 3000
+host = "${main_domain}"
+
+[config]
+env = [
+"CONTAINER_PREFIX=${container_name_prefix}",
+"GRAFANA_VERSION=13.0.1",
+"LOKI_VERSION=3.7.0",
+"GRAFANA_ROOT_URL=http://${main_domain}",
+"GRAFANA_ADMIN_USER=${grafana_admin_user}",
+"GRAFANA_ADMIN_PASSWORD=${grafana_admin_password}",
+"GRAFANA_LOG_LEVEL=info",
+"GRAFANA_COOKIE_SECURE=false",
+"GRAFANA_COOKIE_SAMESITE=lax",
+"GRAFANA_CONTENT_SECURITY_POLICY=true",
+"LOKI_LOG_LEVEL=info",
+"LOKI_S3_BUCKET=${loki_s3_bucket}",
+"LOKI_S3_ENDPOINT=${loki_s3_endpoint}",
+"LOKI_S3_REGION=${loki_s3_region}",
+"LOKI_S3_ACCESS_KEY_ID=${loki_s3_access_key_id}",
+"LOKI_S3_SECRET_ACCESS_KEY=${loki_s3_secret_access_key}",
+"LOKI_S3_FORCE_PATH_STYLE=true",
+"LOKI_S3_INSECURE=true",
+"LOKI_RETENTION_PERIOD=720h",
+"LOKI_INGESTION_RATE_MB=16",
+"LOKI_INGESTION_BURST_SIZE_MB=32",
+"LOKI_MAX_QUERY_SERIES=5000",
+"LOKI_MAX_ENTRIES_LIMIT_PER_QUERY=5000",
+"LOKI_QUERY_TIMEOUT=2m",
+"LOKI_MAX_QUERY_LOOKBACK=720h",
+"LOKI_REJECT_OLD_SAMPLES_MAX_AGE=168h",
+"LOKI_CHUNK_IDLE_PERIOD=30m",
+"LOKI_MAX_CHUNK_AGE=2h",
+"LOKI_CHUNK_TARGET_SIZE=1572864",
+"LOKI_TSDB_CACHE_TTL=24h",
+"LOKI_COMPACTION_INTERVAL=10m",
+"LOKI_RETENTION_DELETE_DELAY=2h",
+"LOKI_RETENTION_DELETE_WORKER_COUNT=50",
+"GRAFANA_HEALTH_INTERVAL=30s",
+"GRAFANA_HEALTH_TIMEOUT=5s",
+"GRAFANA_HEALTH_RETRIES=5",
+"GRAFANA_HEALTH_START_PERIOD=45s",
+"GRAFANA_STOP_GRACE_PERIOD=30s",
+"LOKI_HEALTH_INTERVAL=30s",
+"LOKI_HEALTH_TIMEOUT=5s",
+"LOKI_HEALTH_RETRIES=5",
+"LOKI_HEALTH_START_PERIOD=45s",
+"LOKI_STOP_GRACE_PERIOD=2m",
+"DOCKER_LOG_MAX_SIZE=10m",
+"DOCKER_LOG_MAX_FILE=3",
+]
