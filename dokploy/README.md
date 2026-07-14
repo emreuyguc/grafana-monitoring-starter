@@ -39,8 +39,8 @@ The external S3 template does not start MinIO or another S3 service. After impor
 LOKI_S3_BUCKET=loki-logs
 LOKI_S3_ENDPOINT=http://s3.example.com
 LOKI_S3_REGION=us-east-1
-LOKI_S3_ACCESS_KEY_ID=change-me
-LOKI_S3_SECRET_ACCESS_KEY=change-me
+LOKI_S3_ACCESS_KEY_ID=replace_with_s3_access_key_id
+LOKI_S3_SECRET_ACCESS_KEY=replace_with_s3_secret_access_key
 LOKI_S3_INSECURE=true
 ```
 

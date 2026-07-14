@@ -9,8 +9,8 @@ container_name_prefix = "${APP_NAME}-grafana"
 loki_s3_bucket = "loki-logs"
 loki_s3_endpoint = "http://s3.example.com"
 loki_s3_region = "us-east-1"
-loki_s3_access_key_id = "change-me"
-loki_s3_secret_access_key = "change-me"
+loki_s3_access_key_id = "replace_with_s3_access_key_id"
+loki_s3_secret_access_key = "replace_with_s3_secret_access_key"
 
 [[config.domains]]
 serviceName = "grafana"

@@ -154,13 +154,13 @@ require_grep 'without blocking stack startup' docs/MAINTENANCE.md
 require_grep 'bash tests/validate-boilerplate\.sh' .github/workflows/validate.yml
 
 export GRAFANA_ADMIN_USER=admin
-export GRAFANA_ADMIN_PASSWORD=admin-password-change-me
+export GRAFANA_ADMIN_PASSWORD=change_me_grafana_admin_password_32_chars
 export GRAFANA_ROOT_URL=http://localhost:3000
 export LOKI_S3_BUCKET=loki-logs
 export LOKI_S3_ENDPOINT=s3.example.com
 export LOKI_S3_REGION=us-east-1
-export LOKI_S3_ACCESS_KEY_ID=access-key
-export LOKI_S3_SECRET_ACCESS_KEY=secret-key
+export LOKI_S3_ACCESS_KEY_ID=replace_with_s3_access_key_id
+export LOKI_S3_SECRET_ACCESS_KEY=replace_with_s3_secret_access_key
 
 docker compose config >/dev/null
 docker compose --env-file .env.example -f compose.yaml -f compose.features.alloy.yaml config >/dev/null

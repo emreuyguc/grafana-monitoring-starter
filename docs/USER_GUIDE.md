@@ -28,13 +28,13 @@ Required production variables for the external S3 base stack:
 ```dotenv
 GRAFANA_ROOT_URL=https://grafana.example.com
 GRAFANA_ADMIN_USER=admin
-GRAFANA_ADMIN_PASSWORD=change-me-use-a-long-random-password
+GRAFANA_ADMIN_PASSWORD=change_me_grafana_admin_password_32_chars
 GRAFANA_COOKIE_SECURE=true
 LOKI_S3_BUCKET=loki-logs
 LOKI_S3_ENDPOINT=s3.example.com
 LOKI_S3_REGION=us-east-1
-LOKI_S3_ACCESS_KEY_ID=change-me
-LOKI_S3_SECRET_ACCESS_KEY=change-me
+LOKI_S3_ACCESS_KEY_ID=replace_with_s3_access_key_id
+LOKI_S3_SECRET_ACCESS_KEY=replace_with_s3_secret_access_key
 ```
 
 To use self-hosted MinIO instead, copy [.env.self-hosted-s3.example](../.env.self-hosted-s3.example) and run with [compose.self-hosted-s3.yaml](../compose.self-hosted-s3.yaml):
