@@ -12,14 +12,31 @@ This project is created for personal use and experimentation.
 - Use at your own risk.
 - I do not accept responsibility for issues, data loss, outages or any damage caused by using this repository.
 
-## Services
+## System Summary
 
-| Service | Role | Default state | Public access |
-| --- | --- | --- | --- |
-| `grafana` | Dashboard | Always on | Expose only this service in Coolify |
-| `loki` | Log storage | Always on | Internal only |
-| `minio` | Self-hosted S3 storage | `self-hosted-s3` overlay | Internal only |
-| `alloy` | Optional collector | `compose.features.alloy.yaml` overlay | Internal only |
+| Field | Value |
+| --- | --- |
+| App | `grafana-observability` |
+| Starter version | `0.1.0` |
+| Last updated | `2026-07-12` |
+| Repository type | `single-stack-template` |
+| Canonical Compose | `compose.yaml` |
+| Local override | `compose.local.yaml` |
+| Env example | `.env.example` |
+| Static validation | `tests/validate-boilerplate.sh` |
+| Dokploy variants | `dokploy/templates/dokploy-self-hosted-s3.json`, `dokploy/templates/dokploy-external-s3.json` |
+
+## Service Inventory
+
+Service metadata is mirrored from [manifest.yaml](manifest.yaml).
+
+| Service | Role | Image | Default state | Public access |
+| --- | --- | --- | --- | --- |
+| `grafana` | Dashboard | `grafana/grafana:13.0.1` | Always on | Expose only this service in Coolify |
+| `loki` | Log storage | `grafana/loki:3.7.0` | Always on | Internal only |
+| `minio` | Self-hosted S3 storage | `ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z` | `self-hosted-s3` overlay | Internal only |
+| `minio-createbucket` | Self-hosted S3 bucket bootstrap | `ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z` | `self-hosted-s3` overlay | Internal only |
+| `alloy` | Optional collector | `grafana/alloy:v1.16.0` | `compose.features.alloy.yaml` overlay | Internal only |
 
 ## Quick Start
 
